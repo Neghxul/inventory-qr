@@ -1,14 +1,15 @@
 export interface ScanData {
-  id?: number;
-  key: string;
-  year: string;
+  id: number;
+  sessionId: string;
+  code?: string;
+  clave: string;
   pedimento: string;
-  description: string;
-  line: string;
-  shelf: string;
-  position: string;
-  quantity: number | null;
-  encoded: boolean;
-  type: "QR" | "Bar";
+  descripcion?: string;
+  linea?: string;
+  estante?: string;
+  posicion?: string;
+  cantidad?: number;
+  codificado?: string;
+  tipo?: string;
   createdAt?: string;
 }

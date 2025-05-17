@@ -1,76 +1,61 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+"use client";
 
-export async function GET() {
-  try {
-    const all = await prisma.inventoryItem.findMany({
-      orderBy: { createdAt: "desc" },
-    });
-    return NextResponse.json(all);
-  } catch {
-    return NextResponse.json({ error: "Error fetching inventory" }, { status: 500 });
-  }
-}
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { ScanData } from "@/types";
 
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const {
-      code,
-      clave,
-      pedimento,
-      descripcion,
-      linea,
-      estante,
-      posicion,
-      codificado,
-      tipo,
-    } = body;
+export default function InventorySummaryPage() {
+  const { sessionId } = useParams();
+  const [records, setRecords] = useState<ScanData[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    if (!clave || !pedimento) {
-      return NextResponse.json({ error: "Missing data" }, { status: 400 });
-    }
+  useEffect(() => {
+    if (!sessionId) return;
+    fetch(`/api/inventory?sessionId=${sessionId}`)
+      .then((res) => res.json())
+      .then((data) => setRecords(data))
+      .catch(() => setRecords([]))
+      .finally(() => setLoading(false));
+  }, [sessionId]);
 
-    const existing = await prisma.inventoryItem.findFirst({
-      where: { clave, pedimento },
-    });
+  return (
+    <div className="text-white p-6 max-w-5xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Resumen de Inventario</h1>
 
-    if (existing) {
-      return NextResponse.json({ error: "Duplicate" }, { status: 409 });
-    }
-
-    const created = await prisma.inventoryItem.create({
-      data: {
-        code,
-        clave,
-        pedimento,
-        descripcion: descripcion || "",
-        linea: linea || "",
-        estante: estante || "",
-        posicion: posicion || "",
-        codificado: codificado || "",
-        tipo: tipo || "",
-      },
-    });
-
-    return NextResponse.json(created);
-  } catch {
-    return NextResponse.json({ error: "Failed to save scan" }, { status: 500 });
-  }
-}
-
-export async function DELETE(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const id = searchParams.get("id");
-
-  if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
-
-  try {
-    const deleted = await prisma.inventoryItem.delete({
-      where: { id: Number(id) },
-    });
-    return NextResponse.json(deleted);
-  } catch {
-    return NextResponse.json({ error: "Delete failed" }, { status: 500 });
-  }
+      {loading ? (
+        <p className="text-gray-400">Cargando datos...</p>
+      ) : records.length === 0 ? (
+        <p className="text-gray-400">No hay registros para esta sesión.</p>
+      ) : (
+        <table className="w-full text-sm border border-gray-700">
+          <thead className="bg-gray-800 text-gray-300">
+            <tr>
+              <th className="border px-2">Clave</th>
+              <th className="border px-2">Pedimento</th>
+              <th className="border px-2">Descripción</th>
+              <th className="border px-2">Línea</th>
+              <th className="border px-2">Estante</th>
+              <th className="border px-2">Posición</th>
+              <th className="border px-2">Codificado</th>
+              <th className="border px-2">Tipo</th>
+            </tr>
+          </thead>
+          <tbody>
+            {records.map((item) => (
+              <tr key={item.id} className="text-center">
+                <td className="border px-1">{item.clave}</td>
+                <td className="border px-1">{item.pedimento}</td>
+                <td className="border px-1">{item.descripcion}</td>
+                <td className="border px-1">{item.linea}</td>
+                <td className="border px-1">{item.estante}</td>
+                <td className="border px-1">{item.posicion}</td>
+                <td className="border px-1">{item.codificado ? "Sí" : "No"}</td>
+                <td className="border px-1">{item.tipo}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
 }
