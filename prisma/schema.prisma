@@ -43,6 +43,7 @@ model InventoryItem {
   line        String
   shelf       String
   position    String
+  type        String
   quantity    Int
   encoded     Boolean             @default(false)
   stock       Int?
