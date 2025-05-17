@@ -2,7 +2,22 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { ScanData } from "@/types";
+
+interface ScanData {
+  id: number;
+  sessionId?: string;
+  code?: string;
+  clave: string;
+  pedimento: string;
+  descripcion?: string;
+  linea?: string;
+  estante?: string;
+  posicion?: string;
+  cantidad?: number;
+  codificado?: string;
+  tipo?: string;
+  createdAt?: string;
+}
 
 export default function InventorySummaryPage() {
   const { sessionId } = useParams();
