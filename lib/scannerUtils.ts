@@ -26,7 +26,7 @@ export async function parseScannedCode(text: string): Promise<ScanData | null> {
       position: position?.toUpperCase() || "",
       encoded,
       type: "QR",
-      quantity: null,
+      quantity: 0,
     };
   } else if (decoded.includes("-")) {
     const [key, rawPedimento] = decoded.split("-");
@@ -42,7 +42,7 @@ export async function parseScannedCode(text: string): Promise<ScanData | null> {
       position: "",
       encoded,
       type: "Bar",
-      quantity: null,
+      quantity: 0,
     };
   }
 

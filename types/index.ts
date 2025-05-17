@@ -1,7 +1,7 @@
 // src/types.ts
 
 export interface ScanData {
-  id: number;
+  id?: number;
   sessionId?: string;
 
   key: string;
