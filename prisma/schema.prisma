@@ -44,6 +44,7 @@ model InventoryItem {
   shelf       String
   position    String
   quantity    Int
+  encoded     Boolean             @default(false)
   stock       Int?
 
   createdAt   DateTime         @default(now())
