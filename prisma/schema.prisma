@@ -17,7 +17,7 @@ model ScanLog {
   shelf       String
   position    String
   quantity    Int?
-  encoded     Boolean
+  encoded     Boolean?
   type        String
   createdAt   DateTime @default(now())
 

@@ -9,7 +9,7 @@ CREATE TABLE "scan_logs" (
     "shelf" TEXT NOT NULL,
     "position" TEXT NOT NULL,
     "quantity" INTEGER,
-    "encoded" BOOLEAN NOT NULL,
+    "encoded" BOOLEAN,
     "type" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -28,7 +28,7 @@ CREATE TABLE "InventorySession" (
 -- CreateTable
 CREATE TABLE "inventory_items" (
     "id" UUID NOT NULL,
-    "sessionId" TEXT NOT NULL,
+    "sessionId" UUID NOT NULL,
     "key" TEXT NOT NULL,
     "year" TEXT NOT NULL,
     "pedimento" TEXT NOT NULL,
