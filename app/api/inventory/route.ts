@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       type,
     } = body;
 
-    const exists = await prisma.inventory.findFirst({
+    const exists = await prisma.inventoryItem.findFirst({
       where: { key, year, pedimento },
     });
 
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(exists, { status: 409 });
     }
 
-    const saved = await prisma.inventory.create({
+    const saved = await prisma.inventoryItem.create({
       data: {
         key,
         year,
@@ -60,7 +60,7 @@ export async function DELETE(req: NextRequest) {
   try {
     const url = new URL(req.url);
     const id = Number(url.pathname.split("/").pop());
-    await prisma.inventory.delete({ where: { id } });
+    await prisma.inventoryItem.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
