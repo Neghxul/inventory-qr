@@ -1,21 +1,23 @@
-import { NextRequest, NextResponse } from "next/server";
+// app/api/inventory/route.ts
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
-    const all = await prisma.inventoryItem.findMany({
+    const items = await prisma.inventoryItem.findMany({
       orderBy: { createdAt: "desc" },
     });
-    return NextResponse.json(all);
-  } catch (e) {
-    return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
+    return NextResponse.json(items);
+  } catch (error) {
+    console.error("Error fetching inventory:", error);
+    return NextResponse.json({ error: "Error fetching inventory" }, { status: 500 });
   }
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const body = await req.json();
     const {
+      sessionId,
       key,
       year,
       pedimento,
@@ -25,44 +27,59 @@ export async function POST(req: NextRequest) {
       position,
       quantity,
       encoded,
-      type,
-    } = body;
+      type: itemType,
+    } = await req.json();
 
-    const exists = await prisma.inventoryItem.findFirst({
-      where: { key, year, pedimento },
-    });
-
-    if (exists) {
-      return NextResponse.json(exists, { status: 409 });
+    // Validaciones mínimas
+    if (!sessionId || !key || !year || !pedimento) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const saved = await prisma.inventoryItem.create({
+    // Evitar duplicados por sesión+clave
+    const existing = await prisma.inventoryItem.findUnique({
+      where: { sessionId_key: { sessionId, key } },
+    });
+    if (existing) {
+      return NextResponse.json({ error: "Duplicate item" }, { status: 409 });
+    }
+
+    // Crear nuevo registro
+    const created = await prisma.inventoryItem.create({
       data: {
+        sessionId,
         key,
         year,
         pedimento,
-        description,
-        line,
-        shelf,
-        position,
-        quantity,
-        encoded,
-        type,
+        description: description || "",
+        line: line || "",
+        shelf: shelf || "",
+        position: position || "",
+        quantity: quantity ?? 0,
+        encoded: encoded ?? false,
+        stock: null,
+        type: itemType || "",
       },
     });
-    return NextResponse.json(saved);
-  } catch (e) {
-    return NextResponse.json({ error: "Failed to create" }, { status: 500 });
+
+    return NextResponse.json(created);
+  } catch (error) {
+    console.error("Error saving inventory item:", error);
+    return NextResponse.json({ error: "Failed to save scan" }, { status: 500 });
   }
 }
 
-export async function DELETE(req: NextRequest) {
+export async function DELETE(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+  if (!id) {
+    return NextResponse.json({ error: "Missing id" }, { status: 400 });
+  }
+
   try {
-    const url = new URL(req.url);
-    const id = Number(url.pathname.split("/").pop());
     await prisma.inventoryItem.delete({ where: { id } });
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (error) {
+    console.error("Error deleting inventory item:", error);
     return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
   }
 }
