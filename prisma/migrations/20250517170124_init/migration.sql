@@ -37,6 +37,7 @@ CREATE TABLE "inventory_items" (
     "shelf" TEXT NOT NULL,
     "position" TEXT NOT NULL,
     "quantity" INTEGER NOT NULL,
+    "encoded" BOOLEAN NOT NULL DEFAULT false,
     "stock" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
