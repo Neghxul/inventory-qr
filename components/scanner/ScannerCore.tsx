@@ -6,41 +6,43 @@ import { FiZap, FiZapOff, FiCamera } from "react-icons/fi";
 import { toast } from "react-hot-toast";
 import { parseScannedCode } from "@/lib/scannerUtils";
 import { ScanData } from "@/types";
+import type { CameraDevice } from "html5-qrcode";
 
 interface Props {
   onScanSuccess: (data: ScanData, raw: string) => void;
 }
 
-type ExtendedConstraints = MediaTrackConstraints & {
-  advanced: { torch: boolean }[];
+type TorchCapableTrack = MediaTrackCapabilities & {
+  torch?: boolean;
 };
-
 
 export default function ScannerCore({ onScanSuccess }: Props) {
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const started = useRef(false);
   const [isScanning, setIsScanning] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
-  const [cameras, setCameras] = useState<any[]>([]);
   const [cameraIndex, setCameraIndex] = useState(0);
+  const [cameras, setCameras] = useState<CameraDevice[]>([]);
 
   const startScanner = async () => {
-    if (scannerRef.current) return;
+    if (scannerRef.current || started.current) return;
     const scanner = new Html5Qrcode("reader");
     scannerRef.current = scanner;
+    started.current = true;
     try {
       const devices = await Html5Qrcode.getCameras();
       if (!devices.length) throw new Error("No cameras found");
-      setCameras(devices);
+      setCameras(devices as CameraDevice[]);
 
       await scanner.start(
-        { deviceId: { exact: devices[cameraIndex].id } },
+        { deviceId: { exact: cameras[cameraIndex].id } },
         {
           fps: 10,
           qrbox: { width: 250, height: 250 },
           videoConstraints: {
             facingMode: "environment",
             advanced: torchOn ? [{ torch: true }] : [],
-          } as ExtendedConstraints,
+          } as any,
         },
         async (decodedText: string) => {
           const parsed = await parseScannedCode(decodedText);
@@ -69,7 +71,7 @@ export default function ScannerCore({ onScanSuccess }: Props) {
       );
 
       setIsScanning(true);
-    } catch (err) {
+    } catch {
       toast.error("Failed to start scanner");
     }
   };
@@ -78,38 +80,29 @@ export default function ScannerCore({ onScanSuccess }: Props) {
     try {
       await scannerRef.current?.stop();
       await scannerRef.current?.clear();
+      scannerRef.current = null;
+      started.current = false;
       setIsScanning(false);
-    } catch (e) {
+    } catch {
       toast.error("Error stopping scanner");
     }
   };
 
   const toggleTorch = async () => {
-    if (scannerRef.current) return;
     try {
-      const stream = (document.querySelector("video") as HTMLVideoElement)?.srcObject as MediaStream;
+      const video = document.querySelector("video") as HTMLVideoElement;
+      const stream = video?.srcObject as MediaStream;
       const track = stream?.getVideoTracks?.()[0];
       if (!track) return toast.error("No video track found");
-      const capabilities = track.getCapabilities?.();
-      if (!(capabilities as any)?.torch) return toast.error("Torch not supported");
+      const capabilities = track.getCapabilities?.() as TorchCapableTrack;
+      if (!capabilities?.torch) return toast.error("Torch not supported");
 
-      await track.applyConstraints({ advanced: [{ torch: !torchOn }]  } as ExtendedConstraints) ;
+      await track.applyConstraints({ advanced: [{ torch: !torchOn }] } as any);
       setTorchOn(!torchOn);
     } catch {
       toast.error("Torch not available on this device");
     }
   };
-  /*const toggleTorch = async () => {
-    try {
-      type ExtendedConstraints = MediaTrackConstraints & {
-  advanced: { torch: boolean }[];
-};
-
-      setTorchOn((prev) => !prev);
-    } catch {
-      toast.error("Torch not supported");
-    }
-  };*/
 
   const switchCamera = () => {
     const next = (cameraIndex + 1) % cameras.length;
@@ -119,7 +112,9 @@ export default function ScannerCore({ onScanSuccess }: Props) {
 
   useEffect(() => {
     startScanner();
-    return () => { stopScanner(); };
+    return () => {
+      stopScanner();
+    };
   }, [cameraIndex]);
 
   return (
@@ -141,14 +136,6 @@ export default function ScannerCore({ onScanSuccess }: Props) {
         >
           <FiCamera />
         </button>
-        {isScanning && (
-          <button
-            onClick={stopScanner}
-            className="text-red-400 bg-red-900 px-3 py-1 rounded text-sm"
-          >
-            Cancel
-          </button>
-        )}
       </div>
     </div>
   );
