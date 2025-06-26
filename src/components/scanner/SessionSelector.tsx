@@ -13,7 +13,7 @@ interface Session {
 }
 
 interface SessionSelectorProps {
-  onSessionSelect: (sessionId: string) => void;
+  onSessionSelect: (sessionId: string, name: string) => void;
 }
 
 export default function SessionSelector({ onSessionSelect }: SessionSelectorProps) {
@@ -61,7 +61,7 @@ export default function SessionSelector({ onSessionSelect }: SessionSelectorProp
             {sessions.map(session => (
                 <button 
                     key={session.id}
-                    onClick={() => onSessionSelect(session.id)}
+                    onClick={() => onSessionSelect(session.id, session.name)}
                     className="w-full flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors text-left"
                 >
                     <div className="flex items-center gap-3">

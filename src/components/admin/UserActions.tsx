@@ -1,10 +1,11 @@
 // src/components/admin/UserActions.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User } from "@prisma/client";
-import { FiPlusCircle, FiEdit, FiTrash2 } from "react-icons/fi";
+import { FiPlusCircle, FiEdit, FiTrash2, FiPrinter } from "react-icons/fi";
 import UserFormModal from "../auth/UserFormModal"; // Lo crearemos en el siguiente paso
+import { setupZebraPrinter, sendZplToPrinter } from "@/lib/services/zebra-print-service";
 import { toast } from "react-hot-toast";
 
 interface UserActionsProps {
@@ -15,6 +16,14 @@ export default function UserActions({ users: initialUsers }: UserActionsProps) {
   const [users, setUsers] = useState(initialUsers);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<Partial<User> | null>(null);
+  const [printerName, setPrinterName] = useState<string | null>(null);
+
+    // Configurar la impresora cuando el componente se monta
+  /*useEffect(() => {
+    setupZebraPrinter()
+      .then(setPrinterName)
+      .catch(console.error);
+  }, []);*/
 
   const handleCreate = () => {
     setEditingUser(null);
@@ -55,6 +64,41 @@ export default function UserActions({ users: initialUsers }: UserActionsProps) {
     }
   }
 
+  const handlePrint = async (user: Partial<User>) => {
+    if (!printerName) {
+        return toast.error("Printer is not ready. Please wait or refresh.");
+    }
+
+    toast.loading("Generating label...");
+
+    try {
+        // Llamamos a nuestra API para obtener el ZPL
+        const res = await fetch('/api/labels/print', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ item: {
+                key: user.id, // Usamos el ID como 'key' para el ejemplo
+                description: user.name,
+                pedimento: 'USER', // Dato de ejemplo
+                year: new Date(user.createdAt!).getFullYear().toString().slice(-2)
+            }})
+        });
+
+        if (!res.ok) {
+            throw new Error("Failed to generate ZPL code from server.");
+        }
+
+        const zpl = await res.text();
+
+        // Enviamos el ZPL a la impresora
+        await sendZplToPrinter(zpl);
+
+    } catch (error: any) {
+        toast.dismiss();
+        toast.error(error.message);
+    }
+  };
+
   
 
   return (
@@ -93,6 +137,9 @@ export default function UserActions({ users: initialUsers }: UserActionsProps) {
                   </button>
                   <button onClick={() => handleDelete(user.id!)} className="text-red-400 hover:text-red-300" title="Delete">
                     <FiTrash2 />
+                  </button>
+                  <button onClick={() => handlePrint(user)} disabled={!printerName} className="text-teal-400 hover:text-teal-300 disabled:text-gray-600" title="Print User Label">
+                    <FiPrinter />
                   </button>
                 </td>
               </tr>

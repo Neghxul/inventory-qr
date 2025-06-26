@@ -4,10 +4,14 @@
 
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { FiLogOut, FiLogIn, FiUser, FiSearch } from "react-icons/fi";
+import { FiLogOut, FiLogIn, FiUser, FiSearch, FiMenu } from "react-icons/fi";
+import { SidebarContext } from "@/lib/context/SidebarContext"; // <-- Importa el contexto
+import { useContext } from "react";
+
 
 export default function NavBar() {
   const { data: session, status } = useSession();
+  const { setIsMobileOpen } = useContext(SidebarContext); // <-- Usa el contexto
   const isAuthenticated = status === "authenticated";
 
   return (
@@ -15,6 +19,9 @@ export default function NavBar() {
       <div className="max-w-7xl mx-auto flex items-center justify-end h-16 px-4">
         {/* Aquí podríamos añadir una barra de búsqueda en el futuro */}
         {/* <div className="flex-1"> <FiSearch/> Search... </div> */}
+        <button onClick={() => setIsMobileOpen(true)} className="md:hidden p-2">
+            <FiMenu size={24}/>
+        </button>
 
         <div className="flex items-center gap-4">
           {isAuthenticated ? (

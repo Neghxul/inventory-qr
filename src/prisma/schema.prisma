@@ -108,3 +108,36 @@ model StockItem {
 
     @@map("stock_items")
 }
+
+// =================================
+//  Modelos de CRM
+// =================================
+
+model Company {
+  id        String    @id @default(uuid())
+  name      String
+  address   String?
+  phone     String?
+  website   String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  contacts  Contact[]
+
+  @@map("companies")
+}
+
+model Contact {
+  id        String    @id @default(uuid())
+  firstName String
+  lastName  String
+  email     String?   @unique
+  phone     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relación con Compañía
+  companyId String?
+  company   Company?  @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  @@map("contacts")
+}
