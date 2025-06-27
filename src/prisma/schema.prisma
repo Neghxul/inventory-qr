@@ -141,3 +141,20 @@ model Contact {
 
   @@map("contacts")
 }
+
+// =================================
+//  Modelos del Diseñador de Etiquetas
+// =================================
+
+model LabelTemplate {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  width     Int       // Ancho en mm
+  height    Int       // Alto en mm
+  elements  Json      // Aquí guardaremos la magia: un JSON con los elementos de la etiqueta
+  previewImageUrl String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("label_templates")
+}

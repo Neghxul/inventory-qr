@@ -15,11 +15,17 @@ interface Props {
   contactToEdit?: ContactWithCompany | null;
   companies: Company[];
   onContactSaved: (contact: ContactWithCompany) => void;
+  defaultCompanyId?: string; // <-- AÑADE ESTA PROP
 }
 
 const initialState = { firstName: "", lastName: "", email: "", phone: "", companyId: "" };
 
-export default function ContactFormModal({ isOpen, setIsOpen, contactToEdit, companies, onContactSaved }: Props) {
+export default function ContactFormModal({ isOpen, 
+  setIsOpen, 
+  contactToEdit, 
+  companies, 
+  onContactSaved,
+  defaultCompanyId }: Props) {
   const [formData, setFormData] = useState(initialState);
   const [isLoading, setIsLoading] = useState(false);
   const isEditing = !!contactToEdit;
@@ -35,10 +41,12 @@ export default function ContactFormModal({ isOpen, setIsOpen, contactToEdit, com
           companyId: contactToEdit.companyId || "",
         });
       } else {
-        setFormData(initialState);
+        setFormData({
+          ...initialState,
+        companyId: defaultCompanyId || ""});
       }
     }
-  }, [contactToEdit, isOpen]);
+  }, [contactToEdit, isOpen, defaultCompanyId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,8 +111,13 @@ export default function ContactFormModal({ isOpen, setIsOpen, contactToEdit, com
                   </div>
                   {/* CAMPO CLAVE: Selector de Compañía */}
                   <div>
-                    <label className="text-sm text-gray-400">Company</label>
-                    <select value={formData.companyId} onChange={(e) => setFormData({...formData, companyId: e.target.value})} className="mt-1 block w-full rounded-md bg-gray-800 border-gray-700 p-2">
+                    <label 
+                      className="text-sm text-gray-400">Company</label>
+                    <select 
+                      value={formData.companyId} 
+                      onChange={(e) => setFormData({...formData, companyId: e.target.value})} 
+                      className="mt-1 block w-full rounded-md bg-gray-800 border-gray-700 p-2"
+                      disabled={!!defaultCompanyId && !isEditing}>
                       <option value="">-- No company --</option>
                       {companies.map(company => (
                         <option key={company.id} value={company.id}>{company.name}</option>

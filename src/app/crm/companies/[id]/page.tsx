@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { PrismaClient } from "@prisma/client";
 import { FiBriefcase, FiMail, FiPhone, FiGlobe, FiMapPin, FiUsers } from "react-icons/fi";
+import CompanyDetailActions from '@/components/crm/CompanyDetailActions';
 import Link from "next/link";
 
 const prisma = new PrismaClient();
@@ -21,7 +22,8 @@ async function getCompanyDetails(id: string) {
       },
     },
   });
-  return company;
+  const allCompanies = await prisma.company.findMany({ orderBy: { name: 'asc' }});
+  return {company, allCompanies};
 }
 
 export default async function CompanyDetailPage({ params }: { params: { id: string } }) {
@@ -30,7 +32,7 @@ export default async function CompanyDetailPage({ params }: { params: { id: stri
     redirect("/auth/signin");
   }
 
-  const company = await getCompanyDetails(params.id);
+  const { company, allCompanies } = await getCompanyDetails(params.id);
 
   if (!company) {
     return <div className="p-8 text-center text-gray-400">Company not found.</div>;
@@ -57,22 +59,8 @@ export default async function CompanyDetailPage({ params }: { params: { id: stri
 
       {/* Panel de Contactos Asociados */}
       <div className="bg-gray-900 p-6 rounded-lg shadow-lg">
-        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2"><FiUsers/> Associated Contacts ({company.contacts.length})</h2>
-        <div className="divide-y divide-gray-700/50">
-          {company.contacts.length > 0 ? (
-            company.contacts.map(contact => (
-              <div key={contact.id} className="py-3 flex justify-between items-center">
-                <div>
-                  <p className="font-semibold">{contact.firstName} {contact.lastName}</p>
-                  <p className="text-sm text-gray-400">{contact.email}</p>
-                </div>
-                {/* Futuro: Botón para ir al detalle del contacto */}
-              </div>
-            ))
-          ) : (
-            <p className="text-sm text-gray-500 py-4">No contacts associated with this company yet.</p>
-          )}
-        </div>
+        <CompanyDetailActions company={company} companies={allCompanies} />
+        
       </div>
     </div>
   );

@@ -8,7 +8,8 @@ import { useState, Fragment, useContext } from "react";
 import { useSession } from "next-auth/react";
 import {
   FiHome, FiLayers, FiPlusCircle, FiRadio, FiChevronsLeft,
-  FiChevronsRight, FiGrid, FiTool, FiShield, FiUsers, FiChevronDown, FiBriefcase
+  FiChevronsRight, FiGrid, FiTool, FiShield, FiUsers, FiChevronDown, FiBriefcase,
+  FiEdit3
 } from "react-icons/fi";
 import { Role } from "@prisma/client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -45,6 +46,9 @@ const navSections: NavSection[] = [
   { label: "CRM", icon: FiBriefcase, items: [
       { href: "/crm/companies", label: "Companies", icon: FiBriefcase },
       { href: "/crm/contacts", label: "Contacts", icon: FiUsers }, 
+  ]},
+  { label: "Designer", icon: FiEdit3, items: [
+      { href: "/designer/templates/new", label: "New Template", icon: FiPlusCircle },
   ]},
   { label: "Admin", icon: FiShield, adminOnly: true, items: [
       { href: "/admin/users", label: "Manage Users", icon: FiUsers },
