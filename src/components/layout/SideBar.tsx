@@ -48,6 +48,7 @@ const navSections: NavSection[] = [
       { href: "/crm/contacts", label: "Contacts", icon: FiUsers }, 
   ]},
   { label: "Designer", icon: FiEdit3, items: [
+      { href: "/designer/templates", label: "Templates", icon: FiGrid }, 
       { href: "/designer/templates/new", label: "New Template", icon: FiPlusCircle },
   ]},
   { label: "Admin", icon: FiShield, adminOnly: true, items: [

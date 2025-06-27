@@ -40,3 +40,23 @@ export async function POST(request: Request) {
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
+
+//  --- FUNCION PARA CARGAR TEMPLATE DE ETIQUETA GUARDADAS --- 
+export async function GET(request: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+
+  try {
+    const templates = await prisma.labelTemplate.findMany({
+      orderBy: {
+        updatedAt: 'desc', // Mostrar las más recientes primero
+      },
+    });
+    return NextResponse.json(templates);
+  } catch (error) {
+    console.error("GET_TEMPLATES_ERROR", error);
+    return new NextResponse("Internal Server Error", { status: 500 });
+  }
+}
