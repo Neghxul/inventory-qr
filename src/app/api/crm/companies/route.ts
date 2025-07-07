@@ -33,14 +33,23 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { name, address, phone, website } = body;
+    const {
+        name, phone, website,
+        street, exteriorNumber, interiorNumber, neighborhood,
+        municipality, state, country, postalCode, ownerId
+    } = body;
 
     if (!name) {
       return new NextResponse("Name is required", { status: 400 });
     }
 
     const company = await prisma.company.create({
-      data: { name, address, phone, website },
+      data: {
+        name, phone, website,
+        street, exteriorNumber, interiorNumber, neighborhood,
+        municipality, state, country, postalCode,
+        ownerId: ownerId || null, 
+      },
     });
 
     return NextResponse.json(company, { status: 201 });

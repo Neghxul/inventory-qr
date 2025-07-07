@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { PrismaClient } from "@prisma/client";
+import  { Role, User } from "@prisma/client"
 import CompanyActions from "@/components/crm/CompanyActions";
 
 const prisma = new PrismaClient();
@@ -11,8 +12,15 @@ const prisma = new PrismaClient();
 async function getCompanies() {
     const companies = await prisma.company.findMany({
       orderBy: { name: 'asc' },
+      include: { owner: true}
     });
-    return companies;
+
+    const sellers = await prisma.user.findMany({
+      where: { role: Role.SELLER },
+      orderBy: { name: 'asc' },
+    })
+
+    return { companies, sellers };
 }
 
 export default async function CompaniesPage() {
@@ -21,7 +29,7 @@ export default async function CompaniesPage() {
     redirect("/auth/signin");
   }
 
-  const companies = await getCompanies();
+  const { companies, sellers } = await getCompanies();
 
-  return <CompanyActions initialCompanies={companies} />;
+  return <CompanyActions initialCompanies={companies} sellers={sellers} />;
 }

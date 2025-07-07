@@ -1,0 +1,35 @@
+{
+  "OrderActions": {
+    "title": "Órdenes",
+    "createButton": "Crear Orden"
+  },
+  "OrderTable": {
+    "orderNumber": "Orden #",
+    "company": "Compañía",
+    "contact": "Contacto",
+    "date": "Fecha",
+    "total": "Total (USD)",
+    "status": "Estado"
+  }, 
+  "SideBar": {
+    "general": "General",
+    "home": "Inicio",
+    "scanner": "Escáner",
+    "inventory": "Inventario",
+    "sessions": "Sesiones",
+    "newSession": "Nueva Sesión",
+    "generators": "Generadores",
+    "qrCodes": "Códigos QR",
+    "barcodes": "Códigos de Barras",
+    "batch": "Por Lote",
+    "crm": "CRM",
+    "companies": "Compañías",
+    "contacts": "Contactos",
+    "orders": "Órdenes",
+    "designer": "Diseñador",
+    "templates": "Plantillas",
+    "newTemplate": "Nueva Plantilla",
+    "admin": "Admin",
+    "manageUsers": "Gestionar Usuarios"
+  }
+}

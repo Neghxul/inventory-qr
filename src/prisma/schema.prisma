@@ -24,6 +24,10 @@ model User {
 
   // Relaciones
   sessions  InventorySession[]
+  ownedCompanies Company[] @relation("CompanyOwner")
+  authoredNotes  Note[]    @relation("NoteAuthor")
+  assignedTasks  Task[]    @relation("TaskAssignee")
+  soldOrders     Order[]   @relation("OrderSeller")
 }
 
 enum Role {
@@ -116,12 +120,31 @@ model StockItem {
 model Company {
   id        String    @id @default(uuid())
   name      String
-  address   String?
+  // address   String?
+
+  // --- Campos de Dirección Detallada ---
+  street         String?
+  exteriorNumber String?
+  interiorNumber String?
+  neighborhood   String?
+  municipality   String?
+  state          String?
+  country        String?
+  postalCode     String?
+
   phone     String?
   website   String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+
+  // --- Relación con el Propietario (Vendedor) ---
+  ownerId        String?
+  owner          User?     @relation("CompanyOwner", fields: [ownerId], references: [id])
+
   contacts  Contact[]
+  notes     Note[]
+  tasks     Task[]
+  orders    Order[]
 
   @@map("companies")
 }
@@ -138,6 +161,8 @@ model Contact {
   // Relación con Compañía
   companyId String?
   company   Company?  @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  orders    Order[]
 
   @@map("contacts")
 }
@@ -157,4 +182,90 @@ model LabelTemplate {
   updatedAt DateTime  @updatedAt
 
   @@map("label_templates")
+
+}
+
+  enum TaskStatus {
+  PENDING
+  COMPLETED
+}
+
+// --- [NUEVO] Modelo para Notas ---
+model Note {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  authorId  String
+  author    User   @relation("NoteAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+// --- [NUEVO] Modelo para Tareas ---
+model Task {
+  id        String     @id @default(cuid())
+  title     String
+  dueDate   DateTime?
+  status    TaskStatus @default(PENDING)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  assigneeId String
+  assignee   User     @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: Cascade)
+}
+
+// --- Añadir este ENUM para el estado de las órdenes ---
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+// --- [NUEVO] Modelo para Órdenes ---
+model Order {
+  id          String      @id @default(cuid())
+  orderNumber String      @unique
+  status      OrderStatus @default(PENDING)
+  totalAmount Float
+  orderDate   DateTime
+
+  rev           String?
+  invoiceNumber String?
+  
+  // Relación con el Vendedor
+  sellerId    String?
+  seller      User?       @relation("OrderSeller", fields: [sellerId], references: [id])
+
+  // Relación con los artículos de la orden
+  lineItems   OrderLineItem[]
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  contactId String
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+// --- [NUEVO] Modelo para los artículos de una orden ---
+model OrderLineItem {
+  id          String  @id @default(cuid())
+  sku         String  // Código del producto
+  description String
+  quantity    Int
+  unitCost    Float   // <<< [NUEVO] Costo por unidad
+  purchaseOrder String? // Orden de Compra (OC)
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }

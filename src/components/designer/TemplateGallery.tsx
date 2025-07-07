@@ -1,11 +1,13 @@
 // src/components/designer/TemplateGallery.tsx
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LabelTemplate } from "@prisma/client";
 import Link from "next/link";
 import { FiEdit, FiTrash2, FiPrinter } from "react-icons/fi"; // Añade FiPrinter
 import { toast } from 'react-hot-toast';
+import { setupZebraPrinter, sendZplToPrinter } from '@/lib/services/zebra-print-service';
+
 
 interface Props {
     initialTemplates: LabelTemplate[];
@@ -13,6 +15,15 @@ interface Props {
 
 export default function TemplateGallery({ initialTemplates }: Props) {
     const [templates, setTemplates] = useState(initialTemplates);
+    const [printerName, setPrinterName] = useState<string | null>(null);
+
+    useEffect(() => {
+        setupZebraPrinter()
+            .then(setPrinterName)
+            .catch(error => {
+                console.error("Zebra Printer setup failed:", error);
+            });
+    }, []);
 
     const handleDelete = async (templateId: string) => {
         // Confirmación para evitar borrados accidentales
@@ -37,6 +48,49 @@ export default function TemplateGallery({ initialTemplates }: Props) {
         }
     };
 
+    const handlePrint = async (template: LabelTemplate) => {
+        if (!printerName) {
+            return toast.error("Printer is not ready. Please wait or check connection.");
+        }
+
+        const toastId = toast.loading("Generating label ZPL...");
+
+        try {
+            const testData = {
+                clave: 'TEST-123',
+                año: '25',
+                pedimento: '9876543',
+                descripción: 'SAMPLE PRODUCT',
+                línea: 'A1',
+                estante: 'B2',
+                posición: 'C3',
+                tipo: 'QR'
+            };
+            
+            const res = await fetch(`/api/designer/templates/${template.id}/print`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: testData })
+            });
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(errorText || "Failed to generate ZPL code.");
+            }
+
+            const zpl = await res.text();
+
+            toast.loading("Sending to printer...", { id: toastId });
+            await sendZplToPrinter(zpl);
+
+            toast.success("Print job sent successfully!", { id: toastId });
+
+        } catch (error: any) {
+            toast.dismiss(toastId);
+            toast.error(error.message);
+        }
+    };
+
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {templates.map((template) => (
@@ -50,7 +104,7 @@ export default function TemplateGallery({ initialTemplates }: Props) {
                         <h3 className="font-bold text-white truncate" title={template.name}>{template.name}</h3>
                         <p className="text-sm text-gray-400">{template.width}mm x {template.height}mm</p>
                         <div className="mt-4 pt-4 border-t border-gray-700 flex justify-end items-center gap-2">
-                            <button onClick={() => toast.success('Print flow coming soon!')} className="p-2 hover:bg-green-500/20 rounded-full text-green-400" title="Print with this template">
+                            <button onClick={() => handlePrint(template)} disabled={!printerName} className="p-2 hover:bg-green-500/20 rounded-full text-green-400 disabled:text-gray-600 disabled:hover:bg-transparent" title={printerName ? "Print with this template" : "Printer not available"}>
                                 <FiPrinter/>
                             </button>
                             <Link href={`/designer/templates/${template.id}/edit`} className="p-2 hover:bg-blue-500/20 rounded-full text-blue-400" title="Edit Template">

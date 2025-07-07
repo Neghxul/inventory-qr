@@ -1,0 +1,35 @@
+{
+  "OrderActions": {
+    "title": "Orders",
+    "createButton": "Create Order"
+  },
+  "OrderTable": {
+    "orderNumber": "Order #",
+    "company": "Company",
+    "contact": "Contact",
+    "date": "Date",
+    "total": "Total (USD)",
+    "status": "Status"
+  },
+  "SideBar": {
+    "general": "General",
+    "home": "Home",
+    "scanner": "Scanner",
+    "inventory": "Inventory",
+    "sessions": "Sessions",
+    "newSession": "New Session",
+    "generators": "Generators",
+    "qrCodes": "QR Codes",
+    "barcodes": "Barcodes",
+    "batch": "Batch",
+    "crm": "CRM",
+    "companies": "Companies",
+    "contacts": "Contacts",
+    "orders": "Orders",
+    "designer": "Designer",
+    "templates": "Templates",
+    "newTemplate": "New Template",
+    "admin": "Admin",
+    "manageUsers": "Manage Users"
+  }
+}
