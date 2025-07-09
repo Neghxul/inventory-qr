@@ -36,6 +36,7 @@ enum Role {
   SELLER   // Puede crear y modificar inventarios
   USER     // Rol básico, puede escanear y participar en sesiones
   READER   // Solo puede ver/leer datos
+  WAREHOUSE // Rol para el personal de almacén
 }
 
 
@@ -239,6 +240,9 @@ model Order {
 
   rev           String?
   invoiceNumber String?
+
+  shippingCarrier String? // Paquetería (ej. FedEx, Estafeta)
+  trackingNumber  String? // Número de guía o rastreo
   
   // Relación con el Vendedor
   sellerId    String?

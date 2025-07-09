@@ -9,7 +9,7 @@ import { useSession } from "next-auth/react";
 import {
   FiHome, FiLayers, FiPlusCircle, FiRadio, FiChevronsLeft,
   FiChevronsRight, FiGrid, FiTool, FiShield, FiUsers, FiChevronDown, FiBriefcase,
-  FiEdit3, FiShoppingCart
+  FiEdit3, FiShoppingCart, FiBarChart2
 } from "react-icons/fi";
 import { Role } from "@prisma/client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -44,6 +44,7 @@ const navSections: NavSection[] = [
       { href: "/generator/batch", label: "batch", icon: FiLayers },
   ]},
   { label: "crm", icon: FiBriefcase, items: [
+      { href: "/crm/dashboard", label: "dashboard", icon: FiBarChart2 },
       { href: "/crm/companies", label: "companies", icon: FiBriefcase },
       { href: "/crm/contacts", label: "contacts", icon: FiUsers }, 
       { href: "/crm/orders", label: "orders", icon: FiShoppingCart },

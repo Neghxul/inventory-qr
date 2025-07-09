@@ -3,7 +3,10 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
-import { FiShoppingCart, FiUser, FiBriefcase, FiPhone, FiMail } from "react-icons/fi";
+import { FiShoppingCart, FiUser, FiBriefcase} from "react-icons/fi";
+import { Role } from "@prisma/client";
+import { FulfillmentPanel } from "@/components/crm/tracking/FulfillmentPanel";
+import { TrackingInfoPanel } from "@/components/crm/tracking/TrackingInfoPanel";
 
 async function getOrderDetails(id: string) {
     const order = await prisma.order.findUnique({
@@ -19,14 +22,17 @@ async function getOrderDetails(id: string) {
 }
 
 export default async function OrderDetailPage({ params }: { params: { id: string } }) {
-    const session = await getServerSession(authOptions);
+     const session = await getServerSession(authOptions);
     if (!session) redirect("/auth/signin");
 
     const order = await getOrderDetails(params.id);
-
     if (!order) {
-        return <div className="p-8 text-center text-gray-400">Order not found.</div>;
+        return <div className="p-8 text-center text-gray-400">Company not found.</div>;
     }
+
+    const userRole = session.user.role;
+    const canFulfillOrders = userRole === Role.ADMIN || userRole === Role.WAREHOUSE;
+
 
     return (
         <div className="max-w-5xl mx-auto p-4 space-y-8 text-white">
@@ -69,6 +75,32 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                     <p className="text-sm text-gray-400">REV: {order.rev || '-'}</p>
                 </div>
             </div>
+
+            {/* Si el usuario tiene permisos, muestra el formulario de envío */}
+            {canFulfillOrders && (
+                <FulfillmentPanel 
+                    orderId={order.id}
+                    initialCarrier={order.shippingCarrier}
+                    initialTracking={order.trackingNumber}
+                />
+            )}
+
+            {/* Si NO tiene permisos PERO la orden ya tiene datos, muestra el panel de rastreo */}
+            {!canFulfillOrders && order.trackingNumber && (
+                 <TrackingInfoPanel 
+                    carrier={order.shippingCarrier}
+                    trackingNumber={order.trackingNumber}
+                />
+            )}
+
+            {/* Si SÍ tiene permisos Y la orden ya tiene datos, muestra también el panel de rastreo */}
+            {canFulfillOrders && order.trackingNumber && (
+                 <TrackingInfoPanel 
+                    carrier={order.shippingCarrier}
+                    trackingNumber={order.trackingNumber}
+                />
+            )}
+
 
             {/* Tabla de Artículos */}
             <div className="bg-gray-900 rounded-lg">
